@@ -135,13 +135,16 @@ void setup() {
 
   Serial.println(bigGuyWord);
 
-  //Set the right CPU
+  //--------------------------------------------------------------------------------
+  /*
+  * This Block of code sets the right CPU based on the synchronization word.
+  * The values are different due to the human made coils.
+  */
   Serial.println("CPU no: " + String((String(bigGuyWord[0]).toInt() % 3) + 1));
   if (String(String(bigGuyWord[0]).toInt() % 3) == "0") analogWrite(4, 65);
   if (String(String(bigGuyWord[0]).toInt() % 3) == "1") analogWrite(6, 65);
   if (String(String(bigGuyWord[0]).toInt() % 3) == "2") analogWrite(13, 75);
-  //analogWrite(13 + String(bigGuyWord[0]).toInt() % 3, heatVal);
-
+  //--------------------------------------------------------------------------------
 
   //Set the seed for wire game
   wireSeed = String(bigGuyWord[2]).toInt();
@@ -186,12 +189,17 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  //--------------------------------------------------------------------------------
+  /*
+  * This is very poorly written code that handles the wires task. It is duplicated
+  * and could easily be shortened.
+  */
   greenVal = !digitalRead(0);
   blueVal = !digitalRead(1);
   redVal = !digitalRead(2);
   blackVal = !digitalRead(3);
 
+  //Counts number of inserted wires
   howMany = greenVal + blueVal + redVal + blackVal;
   //Serial.println(howMany);
 
@@ -200,6 +208,7 @@ void loop() {
     delay(500);
   }
 
+  //Check if the task is completed
   if (!isWireDone) {
     if (greenVal == 1 && !prevs[0] && millis() - timeWire > debounce) {
       if (currentState[0] == 1) currentState[0] = 0;
@@ -216,6 +225,7 @@ void loop() {
       }
     }
 
+    //These statements check individual wires
     if (blueVal == 1 && !prevs[1] && millis() - timeWire > debounce) {
       if (currentState[1] == 1) currentState[1] = 0;
       else currentState[1] = 1;
@@ -268,7 +278,9 @@ void loop() {
     prevs[3] = blackVal;
 
   }
+  //--------------------------------------------------------------------------------
 
+  //Handles keypad click
   customKeypad.tick();
   while (customKeypad.available()) {
     keypadEvent e = customKeypad.read();
@@ -278,13 +290,13 @@ void loop() {
 
     }
   }
+  //Handles the knob
   knobThing();
+  //Handles beeping
   if (!isDone) beeping();
 
-  //bool startVib = false;
-  //int vibCounter = 0;
-  //int vibCountMax = 2;
 
+  //Knob vibration done in loop to not rely on delay()-function
   if (startVib) {
     if (millis() - prevVibTime >= intervalWait) {
       prevVibTime = millis();
@@ -313,6 +325,10 @@ void loop() {
   delay(1);
 }
 
+//--------------------------------------------------------------------------------
+/*
+* This function handles the knob turning and calls the small vibration patterns.
+*/
 void knobThing() {
   currentStateCLK = digitalRead(knobCLK);
 
@@ -325,13 +341,6 @@ void knobThing() {
       currentDir = "CCW";
       if (knobCounter == int(knobCounter)) {
         if (knobCounter == knobCorrect) {
-          /*analogWrite(motorPin, vibValMax);
-            delay(50);
-            analogWrite(motorPin, 0);
-            delay(50);
-            analogWrite(motorPin, vibValMax);
-            delay(50);
-            analogWrite(motorPin, 0);*/
           startVib = true;
           vibCountMax = 3;
           intervalWait = 50;
@@ -339,9 +348,6 @@ void knobThing() {
           startVib = true;
           vibCountMax = 1;
           intervalWait = 100;
-          /*analogWrite(motorPin, vibValMin);
-            delay(vibWaitMin);
-            analogWrite(motorPin, 0);*/
         }
       }
     } else {
@@ -350,13 +356,6 @@ void knobThing() {
       currentDir = "CW";
       if (knobCounter == int(knobCounter)) {
         if (knobCounter == knobCorrect) {
-          /*analogWrite(motorPin, vibValMax);
-            delay(50);
-            analogWrite(motorPin, 0);
-            delay(50);
-            analogWrite(motorPin, vibValMax);
-            delay(50);
-            analogWrite(motorPin, 0);*/
           startVib = true;
           vibCountMax = 3;
           intervalWait = 50;
@@ -364,9 +363,6 @@ void knobThing() {
           startVib = true;
           vibCountMax = 1;
           intervalWait = 100;
-          /*analogWrite(motorPin, vibValMin);
-            delay(vibWaitMin);
-            analogWrite(motorPin, 0);*/
         }
       }
     }
@@ -374,7 +370,9 @@ void knobThing() {
   }
   lastStateCLK = currentStateCLK;
 }
+//--------------------------------------------------------------------------------
 
+//This function handles the keypad and display
 void inputKey(String letter, int sizeOfMsg) {
   if ( letter == "C") {
     if (sizeOfMsg > 0) keyMsg.remove(sizeOfMsg - 1);
@@ -418,21 +416,25 @@ void refreshDisplay() {
   display.display();
 }
 
-
+//--------------------------------------------------------------------------------
+/*
+* This function is used for the different modalities and does the beeping
+*/
 void beeping() {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     if (tickToggle) {
-      //tone(tonePin, 1000, 200);
+      //tone(tonePin, 1000, 200); //Uncomment to make the bomb beep
       tickToggle = false;
-      digitalWrite(rLed, LOW);
-      //analogWrite(motorPin, 0);
+      digitalWrite(rLed, LOW); //Uncomment to make the bomb blink
+      //analogWrite(motorPin, 0); //Uncomment to make the bomb vibrate in patterns
     } else {
-      //tone(tonePin, 1000, 200);
+      //tone(tonePin, 1000, 200); //Uncomment to make the bomb beep
       tickToggle = true;
-      digitalWrite(rLed, HIGH);
-      //analogWrite(motorPin, 18);
+      digitalWrite(rLed, HIGH); //Uncomment to make the bomb blink
+      //analogWrite(motorPin, 18); //Uncomment to make the bomb vibrate in patterns
     }
   }
 }
+//--------------------------------------------------------------------------------
